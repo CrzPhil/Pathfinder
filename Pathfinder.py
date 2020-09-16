@@ -46,8 +46,9 @@ class Cube:
 
     def draw(self):
         click = pygame.mouse.get_pressed()
-        if click[0] == True:  # evaluate left button
+        if click[0]:  # evaluate left button
             pygame.draw.rect(screen, (255, 255, 255), self.square)
+
 
 cube = Cube()
 
@@ -58,7 +59,6 @@ def main():
     screen_height = 800
     screen_color = (190, 190, 190)
     row = 40  # Rows in Grid
-    drawing_cube = False
     running = True
     clock = pygame.time.Clock()
     while running:
