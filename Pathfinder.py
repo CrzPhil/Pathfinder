@@ -45,8 +45,9 @@ class Cube:
         self.square = pygame.Rect(self.cx, self.cy, 20, 20)
 
     def draw(self):
-        pygame.draw.rect(screen, (255, 255, 255), self.square)
-
+        click = pygame.mouse.get_pressed()
+        if click[0] == True:  # evaluate left button
+            pygame.draw.rect(screen, (255, 255, 255), self.square)
 
 cube = Cube()
 
@@ -72,12 +73,8 @@ def main():
                 if event.key == K_ESCAPE:
                     pygame.quit()
                     sys.exit()
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                cube.update()
-                drawing_cube = True
-
-        if drawing_cube:
-            cube.draw()
+        cube.update()
+        cube.draw()
         pygame.display.flip()
         pygame.display.update()
 
