@@ -23,12 +23,9 @@ pygame.display.set_caption("Pathfinder")
 
 
 def drawgrid(w, rows, surface):
-    sizebtwn = w // rows  # Distance between Lines
-    x = 0
-    y = 0
-    for i in range(rows):
-        x = x + sizebtwn
-        y = y + sizebtwn
+    sizebtwn = w // rows
+    for i in range(0, w, sizebtwn):
+        x, y = i, i
         pygame.draw.line(surface, (255, 255, 255), (x, 0), (x, w))
         pygame.draw.line(surface, (255, 255, 255), (0, y), (w, y))
 
@@ -40,14 +37,17 @@ def redrawWindow(surface):
 
 
 class Cube:
-    def update(self):
-        self.cx, self.cy = pygame.mouse.get_pos()
-        self.square = pygame.Rect(self.cx, self.cy, 20, 20)
+    def update(self, sizebtwn):
+        x, y = pygame.mouse.get_pos()
+        ix = x // sizebtwn
+        iy = y // sizebtwn
+        self.cx, self.cy = ix * sizebtwn, iy * sizebtwn
+        self.square = pygame.Rect(self.cx, self.cy, sizebtwn, sizebtwn)
 
-    def draw(self):
+    def draw(self, surface):
         click = pygame.mouse.get_pressed()
-        if click[0]:  # evaluate left button
-            pygame.draw.rect(screen, (255, 255, 255), self.square)
+        if click[0]:
+            pygame.draw.rect(surface, (255, 255, 255), self.square)
 
 
 cube = Cube()
@@ -73,8 +73,8 @@ def main():
                 if event.key == K_ESCAPE:
                     pygame.quit()
                     sys.exit()
-        cube.update()
-        cube.draw()
+        cube.update(screen.get_width() // 40)
+        cube.draw(screen)
         pygame.display.flip()
         pygame.display.update()
 
