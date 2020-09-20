@@ -1,8 +1,8 @@
 import sys
 import pygame
 from pygame.locals import *
+import tkinter
 
-pygame.init()  # initialise pyGame
 
 # Something about this being a standalone module, in order to avoid entanglements?
 
@@ -12,6 +12,32 @@ pygame.init()  # initialise pyGame
 
 '''# Takes arguments: size, flags, depth, display. Size is width and height,
  flags is collection of additional options, depth is number of bits to use for color'''
+
+
+def callback():
+    pass
+
+
+def prompt():
+    # global startnodex, startnodey, endnodex, endnodey
+    window = tkinter.Tk()
+    window.title("Pathfinder")
+    tkinter.Label(window, text="Start Node (x, y)").grid(row=0)
+    sx = tkinter.Entry(window).grid(row=0, column=1)
+    sy = tkinter.Entry(window).grid(row=0, column=2)
+    # startnodex = sx.get(), sy.get()
+    tkinter.Label(window, text="End Node (x, y)").grid(row=1)
+    ex = tkinter.Entry(window).grid(row=1, column=1)
+    ey = tkinter.Entry(window).grid(row=1, column=2)
+    # endnodex = ex.get(), ey.get()
+    tkinter.Checkbutton(window, text="Show Process").grid(columnspan=2)
+    tkinter.Button(window, text="Start", width=10, command=callback).grid(columnspan=6)
+
+    window.mainloop()
+
+
+prompt()
+
 
 screen_width = 800
 screen_height = 800
@@ -54,6 +80,7 @@ cube = Cube()
 
 
 def main():
+    pygame.init()
     global screen_width, screen_height, screen_color, row
     screen_width = 800
     screen_height = 800
@@ -63,7 +90,7 @@ def main():
     clock = pygame.time.Clock()
     while running:
         pygame.time.delay(50)
-        clock.tick(10)
+        clock.tick(60)
         redrawWindow(screen)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
