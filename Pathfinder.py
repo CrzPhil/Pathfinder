@@ -10,7 +10,7 @@ import tkinter
     main()'''
 
 
-'''# Takes arguments: size, flags, depth, display. Size is width and height,
+''' Takes arguments: size, flags, depth, display. Size is width and height,
  flags is collection of additional options, depth is number of bits to use for color'''
 
 
@@ -19,24 +19,25 @@ def callback():
 
 
 def prompt():
-    # global startnodex, startnodey, endnodex, endnodey
     window = tkinter.Tk()
     window.title("Pathfinder")
     tkinter.Label(window, text="Start Node (x, y)").grid(row=0)
-    sx = tkinter.Entry(window).grid(row=0, column=1)
-    sy = tkinter.Entry(window).grid(row=0, column=2)
-    # startnodex = sx.get(), sy.get()
+    coordinatex = tkinter.Entry(window)
+    coordinatex.grid(row=0, column=1)
+    coordinatey = tkinter.Entry(window)
+    coordinatey.grid(row=0, column=2)
     tkinter.Label(window, text="End Node (x, y)").grid(row=1)
-    ex = tkinter.Entry(window).grid(row=1, column=1)
-    ey = tkinter.Entry(window).grid(row=1, column=2)
-    # endnodex = ex.get(), ey.get()
+    tkinter.Entry(window).grid(row=1, column=1)
+    tkinter.Entry(window).grid(row=1, column=2)
     tkinter.Checkbutton(window, text="Show Process").grid(columnspan=2)
     tkinter.Button(window, text="Start", width=10, command=callback).grid(columnspan=6)
 
+    startnode = coordinatex.get(), coordinatey.get()
     window.mainloop()
 
 
 prompt()
+
 
 
 screen_width = 800
