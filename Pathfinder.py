@@ -55,6 +55,22 @@ endPurple = (128, 0, 128)
 
 start = input("Choose start node (x,y): ").split(',')
 end = input("Choose end node (x,y): ").split(',')
+sx = 0
+sy = 0
+ex = 0
+ey = 0
+
+for i in range(0, int(start[0])):
+    sx += 20
+for i in range(0, int(start[1])):
+    sy += 20
+for i in range(0, int(end[0])):
+    ex += 20
+for i in range(0, int(end[1])):
+    ey += 20
+
+print(sx)
+print(sy)
 
 
 def drawgrid(w, rows, surface):
@@ -97,7 +113,8 @@ def main():
     row = 40  # Rows in Grid
     running = True
     clock = pygame.time.Clock()
-    pygame.draw.rect(screen, startGreen, pygame.Rect(int(start[0]), int(start[1]), 20, 20))
+    pygame.draw.rect(screen, startGreen, pygame.Rect(sx, sy, 20, 20))
+    pygame.draw.rect(screen, endPurple, pygame.Rect(ex, ey, 20, 20))
     while running:
         pygame.time.delay(50)
         clock.tick(60)
