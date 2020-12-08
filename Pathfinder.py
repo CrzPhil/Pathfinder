@@ -1,7 +1,8 @@
 import sys
 import pygame
 from pygame.locals import *
-import tkinter
+from tkinter import *
+from tkinter import ttk
 
 
 # Something about this being a standalone module, in order to avoid entanglements?
@@ -14,31 +15,31 @@ import tkinter
  flags is collection of additional options, depth is number of bits to use for color'''
 
 
-def callback():
+'''def callback():
     pass
-
-
-def prompt():
-    window = tkinter.Tk()
+'''
+# Tkinter Prompt; Cannot store .Entries into a variable.
+'''def prompt():
+    global startNode, endNode
+    window = Tk()
     window.title("Pathfinder")
-    tkinter.Label(window, text="Start Node (x, y)").grid(row=0)
-    coordinatex = tkinter.Entry(window)
-    coordinatex.grid(row=0, column=1)
-    coordinatey = tkinter.Entry(window)
-    coordinatey.grid(row=0, column=2)
-    tkinter.Label(window, text="End Node (x, y)").grid(row=1)
-    tkinter.Entry(window).grid(row=1, column=1)
-    tkinter.Entry(window).grid(row=1, column=2)
-    tkinter.Checkbutton(window, text="Show Process").grid(columnspan=2)
-    tkinter.Button(window, text="Start", width=10, command=callback).grid(columnspan=6)
+    Label(window, text="Start Node (x,y)").grid(row=0)
+    startNode = ttk.Entry(window)
+    startNode.grid(row=0, column=1)
+    Label(window, text="End Node (x,y)").grid(row=1)
+    endNode = ttk.Entry(window)
+    endNode.grid(row=1, column=1)
+    Checkbutton(window, text="Show Process").grid(columnspan=2)
+    Button(window, text="Start", width=10, command=callback).grid(columnspan=6)
 
-    startnode = coordinatex.get(), coordinatey.get()
     window.mainloop()
 
 
 prompt()
-
-
+print(startNode)'''
+'''st = startNode.split(',')
+ed = endNode.split(',')
+print(''+st+' '+ed)'''
 
 screen_width = 800
 screen_height = 800
@@ -47,6 +48,29 @@ grid_color = (0, 0, 0)
 screen = pygame.display.set_mode([screen_width, screen_height])
 screen.fill(screen_color)
 pygame.display.set_caption("Pathfinder")
+colorWhite = (255, 255, 255)
+startGreen = (0, 255, 0)
+endPurple = (128, 0, 128)
+open_list = []
+closed_list = []
+
+
+print("[+] Min (0,0) | Max (39,39)")
+start = input("Choose start node (x,y): ").split(',')
+end = input("Choose end node (x,y): ").split(',')
+sx = 0
+sy = 0
+ex = 0
+ey = 0
+
+for i in range(0, int(start[0])):
+    sx += 20
+for i in range(0, int(start[1])):
+    sy += 20
+for i in range(0, int(end[0])):
+    ex += 20
+for i in range(0, int(end[1])):
+    ey += 20
 
 
 def drawgrid(w, rows, surface):
@@ -71,13 +95,25 @@ class Cube:
         self.cx, self.cy = ix * sizebtwn, iy * sizebtwn
         self.square = pygame.Rect(self.cx, self.cy, sizebtwn, sizebtwn)
 
-    def draw(self, surface):
+    def draw(self, surface, colour):
         click = pygame.mouse.get_pressed()
         if click[0]:
-            pygame.draw.rect(surface, (255, 255, 255), self.square)
+            pygame.draw.rect(surface, colour, self.square)
 
 
 cube = Cube()
+
+# Node Class containing Parameters for the A* Algorithm
+
+
+class Node:
+    def __init__(self, pos=None, parent=None):
+        self.pos = pos
+        self.parent = parent
+
+        self.f = 0      # Total Cost
+        self.g = 0      # Distance Current -> Start
+        self.h = 0      # Estimated Distance Current -> End
 
 
 def main():
@@ -89,6 +125,8 @@ def main():
     row = 40  # Rows in Grid
     running = True
     clock = pygame.time.Clock()
+    pygame.draw.rect(screen, startGreen, pygame.Rect(sx, sy, 20, 20))
+    pygame.draw.rect(screen, endPurple, pygame.Rect(ex, ey, 20, 20))
     while running:
         pygame.time.delay(50)
         clock.tick(60)
@@ -102,10 +140,9 @@ def main():
                     pygame.quit()
                     sys.exit()
         cube.update(screen.get_width() // 40)
-        cube.draw(screen)
+        cube.draw(screen, colorWhite)
         pygame.display.flip()
         pygame.display.update()
 
 
 main()
-
