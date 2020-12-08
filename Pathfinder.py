@@ -51,8 +51,11 @@ pygame.display.set_caption("Pathfinder")
 colorWhite = (255, 255, 255)
 startGreen = (0, 255, 0)
 endPurple = (128, 0, 128)
+open_list = []
+closed_list = []
 
 
+print("[+] Min (0,0) | Max (39,39)")
 start = input("Choose start node (x,y): ").split(',')
 end = input("Choose end node (x,y): ").split(',')
 sx = 0
@@ -68,9 +71,6 @@ for i in range(0, int(end[0])):
     ex += 20
 for i in range(0, int(end[1])):
     ey += 20
-
-print(sx)
-print(sy)
 
 
 def drawgrid(w, rows, surface):
@@ -103,6 +103,18 @@ class Cube:
 
 cube = Cube()
 
+# Node Class containing Parameters for the A* Algorithm
+
+
+class Node:
+    def __init__(self, pos=None, parent=None):
+        self.pos = pos
+        self.parent = parent
+
+        self.f = 0      # Total Cost
+        self.g = 0      # Distance Current -> Start
+        self.h = 0      # Estimated Distance Current -> End
+
 
 def main():
     pygame.init()
@@ -134,4 +146,3 @@ def main():
 
 
 main()
-
