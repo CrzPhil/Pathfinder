@@ -1,148 +1,245 @@
-import sys
+from queue import PriorityQueue
 import pygame
 from pygame.locals import *
 from tkinter import *
-from tkinter import ttk
-
-
-# Something about this being a standalone module, in order to avoid entanglements?
-
-'''if __name__ == '__main__':
-    main()'''
-
-
-''' Takes arguments: size, flags, depth, display. Size is width and height,
- flags is collection of additional options, depth is number of bits to use for color'''
-
-
-'''def callback():
-    pass
-'''
-# Tkinter Prompt; Cannot store .Entries into a variable.
-'''def prompt():
-    global startNode, endNode
-    window = Tk()
-    window.title("Pathfinder")
-    Label(window, text="Start Node (x,y)").grid(row=0)
-    startNode = ttk.Entry(window)
-    startNode.grid(row=0, column=1)
-    Label(window, text="End Node (x,y)").grid(row=1)
-    endNode = ttk.Entry(window)
-    endNode.grid(row=1, column=1)
-    Checkbutton(window, text="Show Process").grid(columnspan=2)
-    Button(window, text="Start", width=10, command=callback).grid(columnspan=6)
-
-    window.mainloop()
-
-
-prompt()
-print(startNode)'''
-'''st = startNode.split(',')
-ed = endNode.split(',')
-print(''+st+' '+ed)'''
 
 screen_width = 800
 screen_height = 800
 screen_color = (190, 190, 190)
 grid_color = (0, 0, 0)
+
+# PyGame Display Stuff
 screen = pygame.display.set_mode([screen_width, screen_height])
-screen.fill(screen_color)
 pygame.display.set_caption("Pathfinder")
-colorWhite = (255, 255, 255)
-startGreen = (0, 255, 0)
-endPurple = (128, 0, 128)
-open_list = []
-closed_list = []
+
+# Colors for Nodes
+gridlines = (133, 195, 207)
+WHITE = (255, 255, 255)
+GREEN = (42, 78, 83)
+PURPLE = (248, 188, 36)
+RED = (98, 199, 153)
+ORANGE = (245, 136, 0)
+BLACK = (5, 24, 33)
+BLUE = (230, 57, 70)
 
 
-print("[+] Min (0,0) | Max (39,39)")
-start = input("Choose start node (x,y): ").split(',')
-end = input("Choose end node (x,y): ").split(',')
-sx = 0
-sy = 0
-ex = 0
-ey = 0
+class Node:
+    def __init__(self, row, col, width, all_rows):
+        self.row = row
+        self.col = col
+        self.x = row * width
+        self.y = col * width
+        self.color = WHITE
+        self.nextnode = []
+        self.width = width
+        self.all_rows = all_rows
 
-for i in range(0, int(start[0])):
-    sx += 20
-for i in range(0, int(start[1])):
-    sy += 20
-for i in range(0, int(end[0])):
-    ex += 20
-for i in range(0, int(end[1])):
-    ey += 20
+    def getposition(self):
+        return self.row, self.col
+
+    def getclosed(self):
+        return self.color == RED
+
+    def getopen(self):
+        return self.color == GREEN
+
+    def getbarrier(self):
+        return self.color == BLACK
+
+    def getstart(self):
+        return self.color == ORANGE
+
+    def getend(self):
+        return self.color == PURPLE
+
+    def dostart(self):
+        self.color = ORANGE
+
+    def draw(self, surface):
+        pygame.draw.rect(surface, self.color, (self.x, self.y, self.width, self.width))
+
+    def res(self):
+        self.color = WHITE
+
+    def close(self):
+        self.color = RED
+
+    def open(self):
+        self.color = GREEN
+
+    def barrier(self):
+        self.color = BLACK
+
+    def doend(self):
+        self.color = PURPLE
+
+    def path(self):
+        self.color = BLUE
+
+    def up_neighbors(self, grid):
+        self.nextnode = []
+        if self.row < self.all_rows - 1 and not grid[self.row + 1][self.col].getbarrier():
+            self.nextnode.append(grid[self.row + 1][self.col])
+        if self.row > 0 and not grid[self.row - 1][self.col].getbarrier():
+            self.nextnode.append(grid[self.row - 1][self.col])
+        if self.col < self.all_rows - 1 and not grid[self.row][self.col + 1].getbarrier():
+            self.nextnode.append(grid[self.row][self.col + 1])
+        if self.col > 0 and not grid[self.row][self.col - 1].getbarrier():
+            self.nextnode.append(grid[self.row][self.col - 1])
+
+    def __lt__(self, other):
+        return False
+
+
+def reconstruct_path(came_from, current, draw):
+    while current in came_from:
+        current = came_from[current]
+        current.path()
+        draw()
+
+
+def algo(draw, grid, start, end):
+    count = 0
+    open_set = PriorityQueue()
+    open_set.put((0, count, start))
+    came_from = {}
+    g_score = {node: float("inf") for row in grid for node in row}
+    g_score[start] = 0
+    f_score = {node: float("inf") for row in grid for node in row}
+    f_score[start] = heuristic(start.getposition(), end.getposition())
+
+    open_set_hash = {start}
+
+    while not open_set.empty():
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+
+        current = open_set.get()[2]
+        open_set_hash.remove(current)
+
+        if current == end:
+            reconstruct_path(came_from, end, draw)
+            end.doend()
+            return True
+
+        for neighbor in current.nextnode:
+            temp_g_score = g_score[current] + 1
+
+            if temp_g_score < g_score[neighbor]:
+                came_from[neighbor] = current
+                g_score[neighbor] = temp_g_score
+                f_score[neighbor] = temp_g_score + heuristic(neighbor.getposition(), end.getposition())
+                if neighbor not in open_set_hash:
+                    count += 1
+                    open_set.put((f_score[neighbor], count, neighbor))
+                    open_set_hash.add(neighbor)
+                    neighbor.open()
+
+        draw()
+
+        if current != start:
+            current.close()
+
+    return False
+
+
+def heuristic(a, b):
+    x1, y1 = a  # our 2 points a and b
+    x2, y2 = b
+    return abs(x1 - x2) + abs(y1 - y2)
+
+
+def makegrid(rows, width):
+    grid = []
+    sizebtwn = width // rows
+    for i in range(rows):
+        grid.append([])
+        for j in range(rows):
+            node = Node(i, j, sizebtwn, rows)
+            grid[i].append(node)
+    return grid
 
 
 def drawgrid(w, rows, surface):
     sizebtwn = w // rows
-    for i in range(0, w, sizebtwn):
-        x, y = i, i
-        pygame.draw.line(surface, (255, 255, 255), (x, 0), (x, w))
-        pygame.draw.line(surface, (255, 255, 255), (0, y), (w, y))
+    for i in range(rows):
+        pygame.draw.line(surface, gridlines, (0, i * sizebtwn), (w, i * sizebtwn))
+        for j in range(rows):
+            pygame.draw.line(surface, gridlines, (j * sizebtwn, 0), (j * sizebtwn, w))
 
 
-def redrawWindow(surface):
-    global screen_width, row
-    drawgrid(screen_width, row, surface)  # Will draw our grid lines
-    pygame.display.update()  # Updates the screen
+def getclicked(position, rows, width):
+    sizebtwn = width // rows
+    y, x = position
+    row = y // sizebtwn
+    col = x // sizebtwn
+    return row, col
 
 
-class Cube:
-    def update(self, sizebtwn):
-        x, y = pygame.mouse.get_pos()
-        ix = x // sizebtwn
-        iy = y // sizebtwn
-        self.cx, self.cy = ix * sizebtwn, iy * sizebtwn
-        self.square = pygame.Rect(self.cx, self.cy, sizebtwn, sizebtwn)
+def drawwindow(screen, grid, rows, width):
+    screen.fill(WHITE)
 
-    def draw(self, surface, colour):
-        click = pygame.mouse.get_pressed()
-        if click[0]:
-            pygame.draw.rect(surface, colour, self.square)
+    for row in grid:
+        for node in row:
+            node.draw(screen)
+    drawgrid(width, rows, screen)
+    pygame.display.update()
 
 
-cube = Cube()
+def main(screen, width):
+    rows = 40
 
-# Node Class containing Parameters for the A* Algorithm
-
-
-class Node:
-    def __init__(self, pos=None, parent=None):
-        self.pos = pos
-        self.parent = parent
-
-        self.f = 0      # Total Cost
-        self.g = 0      # Distance Current -> Start
-        self.h = 0      # Estimated Distance Current -> End
-
-
-def main():
-    pygame.init()
-    global screen_width, screen_height, screen_color, row
-    screen_width = 800
-    screen_height = 800
-    screen_color = (190, 190, 190)
-    row = 40  # Rows in Grid
     running = True
-    clock = pygame.time.Clock()
-    pygame.draw.rect(screen, startGreen, pygame.Rect(sx, sy, 20, 20))
-    pygame.draw.rect(screen, endPurple, pygame.Rect(ex, ey, 20, 20))
+
+    start = None
+    end = None
+
+    grid = makegrid(rows, width)
+
     while running:
-        pygame.time.delay(50)
-        clock.tick(60)
-        redrawWindow(screen)
+        drawwindow(screen, grid, rows, width)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
+                running = False
             if event.type == pygame.KEYDOWN:
                 if event.key == K_ESCAPE:
-                    pygame.quit()
-                    sys.exit()
-        cube.update(screen.get_width() // 40)
-        cube.draw(screen, colorWhite)
-        pygame.display.flip()
-        pygame.display.update()
+                    running = False
+            if pygame.mouse.get_pressed()[0]:
+                position = pygame.mouse.get_pos()
+                row, col = getclicked(position, rows, width)
+                node = grid[row][col]
+                if not start and node != end:
+                    start = node
+                    start.dostart()
+                elif not end and node != start:
+                    end = node
+                    end.doend()
+                elif node != start and node != end:
+                    node.barrier()
+            elif pygame.mouse.get_pressed()[2]:
+                position = pygame.mouse.get_pos()
+                row, col = getclicked(position, rows, width)
+                node = grid[row][col]
+                node.res()
+                if node == start:
+                    start = None
+                elif node == end:
+                    end = None
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE and start and end:
+                    for row in grid:
+                        for node in row:
+                            node.up_neighbors(grid)
+
+                    algo(lambda: drawwindow(screen, grid, rows, width), grid, start, end)
+
+                if event.key == pygame.K_c:
+                    start = None
+                    end = None
+                    grid = makegrid(rows, width)
+
+    pygame.quit()
 
 
-main()
+main(screen, screen_width)
